@@ -5,7 +5,7 @@ from app.core.config import settings
 
 
 # Cоздали движок БД
-engine = create_async_engine(settings.ASYNC_DATABASE_URL)
+engine = create_async_engine(settings.async_database_url)
 # Передали движок в создатель сессий
 async_session_maker = async_sessionmaker(engine, class_=AsyncSession)
 

@@ -14,7 +14,7 @@ sys.path.append(os.path.join(sys.path[0], 'app'))
 
 from app.core.config import settings
 from app.db.database import Base
-# from app.db.models import
+from app.db.models import User, Coord, PerevalAdded, PImage, PerevalImage, PerevalArea, SprActivitiesType
 
 
 # this is the Alembic Config object, which provides
@@ -24,11 +24,11 @@ config = context.config
 # Добавили работу с секциями конфига / работу с переменными окружения,
 # чтобы они стали доступны в alembic.ini
 section = config.config_ini_section
-config.set_section_option(section, "DB_HOST", settings.DB_HOST)
-config.set_section_option(section, "DB_PORT", settings.DB_PORT)
-config.set_section_option(section, "DB_USER", settings.DB_USER)
-config.set_section_option(section, "DB_NAME", settings.DB_NAME)
-config.set_section_option(section, "DB_PASS", settings.DB_PASS)
+config.set_section_option(section, "FSTR_DB_HOST", settings.FSTR_DB_HOST)
+config.set_section_option(section, "FSTR_DB_PORT", settings.FSTR_DB_PORT)
+config.set_section_option(section, "FSTR_DB_LOGIN", settings.FSTR_DB_LOGIN)
+config.set_section_option(section, "FSTR_DB_PASS", settings.FSTR_DB_PASS)
+config.set_section_option(section, "FSTR_DB_NAME", settings.FSTR_DB_NAME)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

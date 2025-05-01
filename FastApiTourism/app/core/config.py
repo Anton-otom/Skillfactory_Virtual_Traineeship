@@ -7,15 +7,16 @@ class Settings(BaseSettings):
         env_file=find_dotenv(),
     )
 
-    DB_HOST: str
-    DB_PORT: str
-    DB_USER: str
-    DB_PASS: str
-    DB_NAME: str
+    FSTR_DB_HOST: str
+    FSTR_DB_PORT: str
+    FSTR_DB_LOGIN: str
+    FSTR_DB_PASS: str
+    FSTR_DB_NAME: str
 
     @property
     def async_database_url(self):
-        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        return (f"postgresql+asyncpg://{self.FSTR_DB_LOGIN}:{self.FSTR_DB_PASS}"
+                f"@{self.FSTR_DB_HOST}:{self.FSTR_DB_PORT}/{self.FSTR_DB_NAME}")
 
 
 settings = Settings()
