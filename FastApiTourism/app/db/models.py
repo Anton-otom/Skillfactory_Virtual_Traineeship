@@ -49,7 +49,7 @@ class PerevalAdded(Base):
     __tablename__ = "pereval_added"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    beautyTitle: Mapped[str] = mapped_column(String(255), nullable=False)
+    beauty_title: Mapped[str] = mapped_column(String(255), nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     other_titles: Mapped[str] = mapped_column(String(255), nullable=True)
     connect: Mapped[str] = mapped_column(String(255), nullable=True)
