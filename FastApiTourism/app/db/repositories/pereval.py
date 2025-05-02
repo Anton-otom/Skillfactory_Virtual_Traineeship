@@ -1,20 +1,22 @@
-from sqlalchemy.orm import Session
+import base64
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import PerevalAdded, User, Coord, StatusPereval, PerevalImage, PImage
 
 
 class DatabaseManager:
-    def __init__(self, session: Session):
-        self.session = session
 
-    def add_pereval(self, pereval_data: dict) -> PerevalAdded:
+    async def add_pereval(self, session: AsyncSession, pereval_data: dict) -> int:
         # Создаем пользователя
         user_data = pereval_data.pop('user')
-        user = self.session.query(User).filter_by(email=user_data['email']).first()
+        result = await session.execute(select(User).where(User.email == user_data['email']))
+        user = result.scalars().first()
         if not user:
             user = User(**user_data)
-            self.session.add(user)
-            self.session.flush()  # Получаем id пользователя
+            session.add(user)
+            await session.flush()  # Получаем id пользователя
 
         # Создаем координаты
         coord_data = pereval_data.pop('coords')
@@ -23,8 +25,8 @@ class DatabaseManager:
             longitude=float(coord_data['longitude']),
             height=int(coord_data['height'])
         )
-        self.session.add(coord)
-        self.session.flush()  # Получаем ID координат
+        session.add(coord)
+        await session.flush()  # Получаем ID координат
 
         # Обрабатываем уровень сложности
         level_data = pereval_data.pop('level')
@@ -35,23 +37,40 @@ class DatabaseManager:
             'level_spring': level_data.get('spring')
         })
 
+        # (отбрасываем информацию о таймзоне)
+        add_time = pereval_data.pop('add_time')
+        if add_time.tzinfo is not None:
+            add_time = add_time.replace(tzinfo=None)
+
+        images_data = pereval_data.pop('images', [])
+
         # Создаем перевал
         pereval = PerevalAdded(
             **pereval_data,
+            add_time=add_time,
+            creator_id=user.id,
             coord_id=coord.id,
-            user_id=user.id,
             status=StatusPereval.NEW
         )
-        self.session.add(pereval)
-        self.session.flush()
+        session.add(pereval)
+        await session.flush()
+        result_pereval_id = pereval.id
 
         # Добавляем изображения
-        for img_data in pereval_data.get('images'):
-            image = PerevalImage(
-                pereval_id=pereval.id,
-                image=PImage(title=img_data['title'], img=img_data['data'])
-            )
-            self.session.add(image)
+        for img_data in images_data:
+            try:
+                img_bytes = base64.b64decode(img_data['data'])
+            except Exception:
+                img_bytes = img_data['data'].encode('utf-8')
+            image = PImage(title=img_data['title'], img=img_bytes)
+            session.add(image)
+            await session.flush()
 
-        self.session.commit()
-        return pereval
+            pereval_image = PerevalImage(
+                pereval_id=pereval.id,
+                image_id=image.id
+            )
+            session.add(pereval_image)
+
+        await session.commit()
+        return result_pereval_id
