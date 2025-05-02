@@ -33,6 +33,8 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     otc: Mapped[str] = mapped_column(String(255), nullable=True)
 
+    perevals: Mapped[list["PerevalAdded"]] = relationship("PerevalAdded", back_populates="creator")
+
 
 # Модель координат
 class Coord(Base):
@@ -54,6 +56,7 @@ class PerevalAdded(Base):
     other_titles: Mapped[str] = mapped_column(String(255), nullable=True)
     connect: Mapped[str] = mapped_column(String(255), nullable=True)
     add_time: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=text("NOW()"))
+    creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     coord_id: Mapped[int] = mapped_column(ForeignKey("coords.id"), nullable=False)
     level_winter: Mapped[str] = mapped_column(String(6), nullable=True)
     level_summer: Mapped[str] = mapped_column(String(6), nullable=True)
@@ -61,6 +64,7 @@ class PerevalAdded(Base):
     level_spring: Mapped[str] = mapped_column(String(6), nullable=True)
     status: Mapped[int] = mapped_column(Integer, default=StatusPereval.NEW)
 
+    creator: Mapped["User"] = relationship("User", back_populates="perevals")
     coords: Mapped["Coord"] = relationship()
     images: Mapped[list["PerevalImage"]] = relationship(back_populates="pereval")
 
