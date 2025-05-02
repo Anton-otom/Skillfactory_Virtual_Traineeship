@@ -14,7 +14,7 @@ from sqlalchemy.dialects.postgresql import BYTEA
 from app.db.database import Base
 
 
-# Пользовательский тип ENUM
+# Пользовательский тип ENUM для статусов заявок по добавлению новых перевалов.
 class StatusPereval(IntEnum):
     NEW = 1
     PENDING = 2
@@ -22,7 +22,7 @@ class StatusPereval(IntEnum):
     REJECTED = 4
 
 
-# Модель пользователей
+# Модель пользователей.
 class User(Base):
     __tablename__ = "users"
 
@@ -36,7 +36,7 @@ class User(Base):
     perevals: Mapped[list["PerevalAdded"]] = relationship("PerevalAdded", back_populates="creator")
 
 
-# Модель координат
+# Модель координат перевалов.
 class Coord(Base):
     __tablename__ = "coords"
 
@@ -46,7 +46,7 @@ class Coord(Base):
     height: Mapped[int] = mapped_column(Integer, nullable=False)
 
 
-# Модель перевалов
+# Модель перевалов.
 class PerevalAdded(Base):
     __tablename__ = "pereval_added"
 
@@ -69,7 +69,7 @@ class PerevalAdded(Base):
     images: Mapped[list["PerevalImage"]] = relationship(back_populates="pereval")
 
 
-# Модель изображений
+# Модель изображений перевалов.
 class PImage(Base):
     __tablename__ = "p_images"
 
@@ -78,7 +78,7 @@ class PImage(Base):
     img: Mapped[bytes] = mapped_column(BYTEA, nullable=False)
 
 
-# Связующая таблица перевал-изображение
+# Связующая таблица перевал-изображение.
 class PerevalImage(Base):
     __tablename__ = "pereval_images"
 
@@ -90,7 +90,7 @@ class PerevalImage(Base):
     image: Mapped["PImage"] = relationship()
 
 
-# Модель областей
+# Модель областей, в которых могут находиться перевалы.
 class PerevalArea(Base):
     __tablename__ = "pereval_areas"
 
@@ -99,7 +99,7 @@ class PerevalArea(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
 
 
-# Модель типов активностей
+# Модель видов спорта на перевалах.
 class SprActivitiesType(Base):
     __tablename__ = "spr_activities_types"
 

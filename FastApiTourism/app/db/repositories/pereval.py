@@ -6,19 +6,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import PerevalAdded, User, Coord, StatusPereval, PerevalImage, PImage
 
 
+# Класс, реализующий логику работы с базой данных.
 class DatabaseManager:
 
+    # Асинхронный метод добавления новых перевалов.
     async def add_pereval(self, session: AsyncSession, pereval_data: dict) -> int:
-        # Создаем пользователя
+
+        # Загрузить в базу данные пользователя (если его нет в базе), добавляющего информацию о перевале.
         user_data = pereval_data.pop('user')
         result = await session.execute(select(User).where(User.email == user_data['email']))
         user = result.scalars().first()
         if not user:
             user = User(**user_data)
             session.add(user)
-            await session.flush()  # Получаем id пользователя
+            await session.flush()  # Получить id пользователя.
 
-        # Создаем координаты
+        # Загрузить в базу данные координат перевала.
         coord_data = pereval_data.pop('coords')
         coord = Coord(
             latitude=float(coord_data['latitude']),
@@ -26,9 +29,10 @@ class DatabaseManager:
             height=int(coord_data['height'])
         )
         session.add(coord)
-        await session.flush()  # Получаем ID координат
+        await session.flush()  # Получить ID координат.
 
-        # Обрабатываем уровень сложности
+        # Вынести данные об уровне сложности перевала из вложенного словаря "level"
+        # в основной словарь "pereval_data".
         level_data = pereval_data.pop('level')
         pereval_data.update({
             'level_winter': level_data.get('winter'),
@@ -37,14 +41,15 @@ class DatabaseManager:
             'level_spring': level_data.get('spring')
         })
 
-        # (отбрасываем информацию о таймзоне)
+        # Убрать информацию о часовом поясе.
         add_time = pereval_data.pop('add_time')
         if add_time.tzinfo is not None:
             add_time = add_time.replace(tzinfo=None)
 
+        # Сохранить изображения перевала в отдельную переменную.
         images_data = pereval_data.pop('images', [])
 
-        # Создаем перевал
+        # Загрузить в базу данные о перевале.
         pereval = PerevalAdded(
             **pereval_data,
             add_time=add_time,
@@ -54,9 +59,13 @@ class DatabaseManager:
         )
         session.add(pereval)
         await session.flush()
+
+        # Сохранить "id" перевала для вывода из метода до закрытия сессии.
         result_pereval_id = pereval.id
 
-        # Добавляем изображения
+        # Преобразовать изображения перевала, если ни в формате "BYTES".
+        # Загрузить изображения в базу данных.
+        # Привязать изображения к перевалу через таблицу "PerevalImage".
         for img_data in images_data:
             try:
                 img_bytes = base64.b64decode(img_data['data'])
@@ -72,5 +81,7 @@ class DatabaseManager:
             )
             session.add(pereval_image)
 
+        # Закрыть сессию работы с базой данных.
         await session.commit()
+        # Вернуть "id" перевала.
         return result_pereval_id

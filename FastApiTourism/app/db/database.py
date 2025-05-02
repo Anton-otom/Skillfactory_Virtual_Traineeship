@@ -4,9 +4,9 @@ from sqlalchemy.orm import DeclarativeBase
 from app.core.config import settings
 
 
-# Cоздали движок БД
+# Создать движок базы данных
 engine = create_async_engine(settings.async_database_url)
-# Передали движок в создатель сессий
+# Передать движок в генератор асинхронных сессий
 async_session_maker = async_sessionmaker(engine, class_=AsyncSession)
 
 
