@@ -49,7 +49,6 @@ class PerevalAdded(Base):
     __tablename__ = "pereval_added"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date_added: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=text("NOW()"))
     beautyTitle: Mapped[str] = mapped_column(String(255), nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     other_titles: Mapped[str] = mapped_column(String(255), nullable=True)
