@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     )
 
     # Провалидировать данные для подключения к базе данных.
+    FSTR_DB_HOST: str
     FSTR_DB_PORT: str
     FSTR_DB_LOGIN: str
     FSTR_DB_PASS: str

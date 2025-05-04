@@ -2,6 +2,7 @@ import base64
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.db.models import PerevalAdded, User, Coord, StatusPereval, PerevalImage, PImage
 
@@ -85,3 +86,19 @@ class DatabaseManager:
         await session.commit()
         # Вернуть "id" перевала.
         return result_pereval_id
+
+    # Асинхронный метод получения перевалов по "id".
+    async def get_pereval_on_id(self, session: AsyncSession, pereval_id: int) -> PerevalAdded | None:
+        # Получить перевал из базы данных, сразу подгрузить значения из связанных моделей.
+        result = await session.execute(
+            select(PerevalAdded)
+            .options(selectinload(PerevalAdded.creator),
+                     selectinload(PerevalAdded.coords),
+                     selectinload(PerevalAdded.images).selectinload(PerevalImage.image))
+            .where(PerevalAdded.id == pereval_id))
+        pereval_data = result.scalars().first()
+
+        # Если перевала с запрашиваемым "id" нет, вернуть "None", если вернуть объект перевала.
+        if not pereval_data:
+            return None
+        return pereval_data
