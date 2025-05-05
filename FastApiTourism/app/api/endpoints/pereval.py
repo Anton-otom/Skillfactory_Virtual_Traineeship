@@ -1,10 +1,18 @@
 import base64
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.api.schemas.pereval import PerevalCreateSchema, PerevalReadSchema, CoordSchema, UserSchema, ImageSchema
+from app.api.schemas.pereval import (
+    PerevalCreateSchema,
+    PerevalReadSchema,
+    CoordSchema,
+    UserSchema,
+    ImageSchema,
+    PerevalUpdateSchema
+)
 from app.db.repositories.pereval import DatabaseManager
 from app.db.database import async_session_maker
 
@@ -88,7 +96,7 @@ async def get_pereval_on_id(
         pereval = await db_manager.get_pereval_on_id(session, id)
         if pereval is None:
             raise ValueError
-        # Преобразовать экземпляр класса в Pydantic-модель и вернуть её.
+        # Преобразовать экземпляр класса в Pydantic-схему и вернуть её.
         return PerevalReadSchema(
             status=pereval.status,
             beauty_title=pereval.beauty_title,
@@ -143,4 +151,43 @@ async def get_pereval_on_id(
                 "status": 500,
                 "message": str(e)
             }
+        )
+
+
+# endpoint, изменяющий данные о перевале по "id".
+@router.patch("/submit_data/{id}", response_model=PerevalReadSchema)
+async def patch_pereval_on_id(
+        id: int,
+        pereval: PerevalUpdateSchema,
+        session: AsyncSession = Depends(get_async_session),
+):
+    # Создать экземпляр класса для работы с базой данной.
+    db_manager = DatabaseManager()
+    try:
+        # Преобразовать Pydantic-схему в словарь.
+        patch_pereval = pereval.model_dump(exclude_unset=True, by_alias=True)
+        # Удалить поле "user", если оно было передано.
+        patch_pereval.pop("user", None)
+        # Выполнить поиск перевала в базе данных.
+        # Получить код результата и сообщение.
+        # Если код "1" - перевал найден и изменён. Сообщение "None".
+        # Если код "0" - перевал не найден или не обновлён. Сообщение с причиной ошибки.
+        state, message = await db_manager.patch_pereval_on_id(session, id, patch_pereval)
+        return JSONResponse(
+            status_code=200 if state else 400,
+            content={"state": state, "message": message}
+        )
+    # Обработать ошибку валидации.
+    except ValidationError as e:
+        print('Чек ValueError')
+        return JSONResponse(
+            status_code=422,
+            content={"state": 0, "message": f"Ошибка валидации: {e.errors()}"}
+        )
+    # Обработать все остальные ошибки.
+    except Exception as e:
+        print('Чек Exception')
+        return JSONResponse(
+            status_code=500,
+            content={"state": 0, "message": f"Ошибка сервера: {str(e)}"}
         )

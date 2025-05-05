@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import IntEnum
-from typing import List, Optional
+from typing import List
 from pydantic import BaseModel, EmailStr, field_serializer, ConfigDict
 
 
@@ -9,7 +9,7 @@ class UserSchema(BaseModel):
     email: EmailStr
     fam: str
     name: str
-    otc: Optional[str] = None
+    otc: str | None = None
     phone: str
     # Параметр для автоматического преобразования ORM в Pydantic.
     model_config = ConfigDict(from_attributes=True)
@@ -26,10 +26,10 @@ class CoordSchema(BaseModel):
 
 # Класс для валидации уровней сложности перевала в разные времена года.
 class LevelSchema(BaseModel):
-    winter: Optional[str] = None
-    summer: Optional[str] = None
-    autumn: Optional[str] = None
-    spring: Optional[str] = None
+    winter: str | None = None
+    summer: str | None = None
+    autumn: str | None = None
+    spring: str | None = None
 
 
 # Класс для валидации изображений.
@@ -40,7 +40,7 @@ class ImageSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-# Класс для валидации всех входных данных.
+# Класс для валидации входных данных, получаемых при создании перевала.
 # Данные по ключам "beauty_title", "title", "other_titles",
 # "connect, "add_time" проверяются напрямую.
 # Данные по ключам "user", "coords", "level", "images"
@@ -48,8 +48,8 @@ class ImageSchema(BaseModel):
 class PerevalCreateSchema(BaseModel):
     beauty_title: str
     title: str
-    other_titles: Optional[str] = None
-    connect: Optional[str] = None
+    other_titles: str | None = None
+    connect: str | None = None
     add_time: datetime
     user: UserSchema
     coords: CoordSchema
@@ -78,15 +78,15 @@ class PerevalReadSchema(BaseModel):
     status: StatusPerevalEnum
     beauty_title: str
     title: str
-    other_titles: Optional[str] = None
-    connect: Optional[str] = None
+    other_titles: str | None = None
+    connect: str | None = None
     add_time: datetime
     user: UserSchema
     coords: CoordSchema
-    level_winter: Optional[str] = None
-    level_summer: Optional[str] = None
-    level_autumn: Optional[str] = None
-    level_spring: Optional[str] = None
+    level_winter: str | None = None
+    level_summer: str | None = None
+    level_autumn: str | None = None
+    level_spring: str | None = None
     images: List[ImageSchema]
 
     # Параметр для автоматического преобразования ORM в Pydantic.
@@ -96,3 +96,22 @@ class PerevalReadSchema(BaseModel):
     @field_serializer("status")
     def serialize_status(self, status):
         return str(status)
+
+
+# Класс для валидации входных данных, получаемых при изменении информации о перевале.
+class PerevalUpdateSchema(PerevalCreateSchema):
+    # Запретить поля неуказанные в этом классе.
+    model_config = ConfigDict(extra="forbid")
+
+    # Исключить поле с данными пользователя.
+    user: None = None
+
+    # Сделать все остальные поля необязательными.
+    beauty_title: str | None = None
+    title: str | None = None
+    other_titles: str | None = None
+    connect: str | None = None
+    add_time: datetime | None = None
+    coords: CoordSchema | None = None
+    level: LevelSchema | None = None
+    images: list[ImageSchema] | None = None
