@@ -1,8 +1,10 @@
 import base64
+import logging
+from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import JSONResponse
-from pydantic import ValidationError
+from pydantic import ValidationError, EmailStr
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.schemas.pereval import (
@@ -134,7 +136,6 @@ async def get_pereval_on_id(
         )
     # Обработать ошибку отсутствия перевала с запрашиваемым "id".
     except ValueError as e:
-        print('Чек ValueError')
         return JSONResponse(
             status_code=404,
             content={
@@ -144,7 +145,82 @@ async def get_pereval_on_id(
         )
     # Обработать все остальные ошибки.
     except Exception as e:
-        print('Чек Exception')
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": 500,
+                "message": str(e)
+            }
+        )
+
+
+# endpoint, возвращающий список перевалов, добавленных пользователем с запрашиваемым email.
+@router.get("/submit_data/", response_model=List[PerevalReadSchema])
+async def get_perevals_on_email(
+        user__email: EmailStr = Query(..., alias="user__email", description="Email пользователя"),
+        session: AsyncSession = Depends(get_async_session),
+):
+    # Создать экземпляр класса для работы с базой данной.
+    db_manager = DatabaseManager()
+    try:
+        # Получить перевалы по запрашиваемому email.
+        perevals = await db_manager.get_perevals_on_email(session, user__email)
+        # Явно преобразовать экземпляры PerevalAdded в Pydantic-схему и вернуть этот список.
+        result_perevals = []
+        for pereval in perevals:
+            result_perevals.append(
+                PerevalReadSchema(
+                    status=pereval.status,
+                    beauty_title=pereval.beauty_title,
+                    title=pereval.title,
+                    other_titles=pereval.other_titles,
+                    connect=pereval.connect,
+                    add_time=pereval.add_time,
+                    user=UserSchema(
+                        email=pereval.creator.email,
+                        fam=pereval.creator.fam,
+                        name=pereval.creator.name,
+                        otc=pereval.creator.otc,
+                        phone=pereval.creator.phone,
+                    ),
+                    coords=CoordSchema(
+                        latitude=pereval.coords.latitude,
+                        longitude=pereval.coords.longitude,
+                        height=pereval.coords.height,
+                    ),
+                    level_winter=pereval.level_winter,
+                    level_summer=pereval.level_summer,
+                    level_autumn=pereval.level_autumn,
+                    level_spring=pereval.level_spring,
+                    images=[
+                        ImageSchema(
+                            data=base64.b64encode(
+                                img.image.img.encode('utf-8')
+                                if isinstance(img.image.img, str)
+                                else img.image.img
+                            )
+                            .decode("utf-8"),
+                            title=img.image.title
+                        ) for img in pereval.images
+                    ]
+                )
+            )
+        return result_perevals
+    # Обработать ошибки HTTP.
+    except HTTPException as e:
+        raise e
+    # Если не сработает Query/EmailStr вызвать ошибку валидации.
+    except ValidationError as e:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "status": 422,
+                "message": f"Ошибка валидации email: {e.errors()}"
+            }
+        )
+    # Обработать все остальные ошибки.
+    except Exception as e:
+        logging.error(f"{e}", exc_info=True)
         return JSONResponse(
             status_code=500,
             content={

@@ -1,6 +1,9 @@
 import base64
+from typing import List
 
+from fastapi import HTTPException
 from sqlalchemy import select, delete, update
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -106,10 +109,44 @@ class DatabaseManager:
             .where(PerevalAdded.id == pereval_id))
         pereval_data = result.scalars().first()
 
-        # Если перевала с запрашиваемым "id" нет, вернуть "None", если вернуть объект перевала.
+        # Если перевала с запрашиваемым "id" нет, вернуть "None",
+        # если такой "id" есть, вернуть объект перевала.
         if not pereval_data:
             return None
         return pereval_data
+
+    # Асинхронный метод получения всех перевалов,
+    # добавленных пользователем с запрашиваемым email.
+    async def get_perevals_on_email(
+            self,
+            session: AsyncSession,
+            user__email: str
+    ) -> List[PerevalAdded]:
+        try:
+            # Проверить, существует ли пользователь с таким email.
+            # Если такого пользователя нет, вызвать исключение.
+            user_result = await session.execute(select(User).where(User.email == user__email))
+            user = user_result.scalars().first()
+            if not user:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Пользователь с таким email не найден."
+                )
+            # Получить перевал из базы данных, сразу подгрузить значения из связанных моделей.
+            result = await session.execute(
+                select(PerevalAdded)
+                .options(selectinload(PerevalAdded.creator),
+                         selectinload(PerevalAdded.coords),
+                         selectinload(PerevalAdded.images).selectinload(PerevalImage.image))
+                .where(PerevalAdded.creator_id == user.id)
+            )
+            return list(result.scalars().all())
+        # При возникновении ошибок в работе с базой данных, вызвать исключение.
+        except SQLAlchemyError as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Ошибка базы данных: {str(e)}"
+            )
 
     # Асинхронный метод изменения перевала по "id".
     async def patch_pereval_on_id(
