@@ -4,27 +4,41 @@
 **Описание**
 
 Асинхронный веб-сервис на FastAPI для регистрации и управления информацией о горных перевалах.
+
 Используется PostgreSQL, SQLAlchemy 2.0, Pydantic, Alembic.
+
 Проект реализует REST API для создания, просмотра, поиска и редактирования перевалов
+
 с привязкой к пользователям, координатам, уровням сложности и изображениями.
 
 
 **Основные возможности**
 
 Добавление нового перевала с вложенными данными (пользователь, координаты, уровни сложности, изображения).
+
 Получение информации о перевале по ID.
+
 Поиск всех перевалов, добавленных пользователем (по email).
+
 Редактирование перевала (если статус позволяет).
+
 Асинхронная работа с базой данных PostgreSQL.
 
 
 **Стэк**
+
 Python 3.10+
+
 FastAPI
+
 SQLAlchemy 2.0 (async)
+
 PostgreSQL
+
 Alembic
+
 Pydantic
+
 dotenv
 
 
@@ -55,8 +69,8 @@ Skillfactory_Virtual_Traineeship/
 
 **Пример входных данных для метода создания перевала**
 
-json
 ```
+json
 {
   "beauty_title": "пер. ",
   "title": "Пхия",
@@ -95,15 +109,19 @@ json
 http://158.160.1.109:8000
 
 Интерактивная документация:
+
 Swagger UI: http://158.160.1.109:8000/docs
+
 ReDoc:http://158.160.1.109:8000/redoc
 
 1. Добавление нового перевала:
+```
 POST /submit_data
+```
 
 Пример запроса:
-bash
 ```
+bash
 curl -X POST "http://158.160.1.109:8000/submit_data/" \
   -H "Content-Type: application/json" \
   -d '{
@@ -158,7 +176,9 @@ json
 ```
 
 2. Получение информации о перевале по ID:
+```
 GET /submit_data/{id}
+```
 
 Пример запроса:
 bash
@@ -212,7 +232,9 @@ json
 ```
 
 3. Получение всех перевалов пользователя по email:
+```
 GET /submit_data/?user__email=<email>
+```
 
 Пример запроса:
 bash
@@ -278,7 +300,9 @@ json
 ```
 
 4. Редактирование перевала:
+```
 PATCH /submit_data/{id}/
+```
 
 Пример запроса:
 bash
@@ -325,14 +349,18 @@ json
 
 1. Клонируйте репозиторий:
 bash
+
 git clone https://github.com/Anton-otom/Skillfactory_Virtual_Traineeship.git
+
 cd Skillfactory_Virtual_Traineeship
 
 2. Создайте и активируйте виртуальное окружение:
 bash
 python -m venv .venv
+
 Windows:
 .\.venv\Scripts\activate
+
 Linux/macOS:
 source .venv/bin/activate
 
@@ -342,9 +370,13 @@ pip install -r requirements.txt
 
 4. Настройте переменные окружения в файле .env. Пример содержимого:
 FSTR_DB_HOST=localhost
+
 FSTR_DB_PORT=5432
+
 FSTR_DB_LOGIN=your_db_user
+
 FSTR_DB_PASS=your_db_password
+
 FSTR_DB_NAME=your_db_name
 
 5. Примените миграции базы данных:
@@ -359,6 +391,7 @@ uvicorn main:app --reload
 **Документация API:**
 
 Swagger UI: http://localhost:8000/docs
+
 ReDoc: http://localhost:8000/redoc
 
 
