@@ -30,6 +30,7 @@ dotenv
 
 **Структура проекта**
 
+```
 Skillfactory_Virtual_Traineeship/
 ├── app/
 │   ├── api/
@@ -49,11 +50,13 @@ Skillfactory_Virtual_Traineeship/
 ├── requirements.txt
 ├── .env
 └── README.md
+```
 
 
 **Пример входных данных для метода создания перевала**
 
 json
+```
 {
   "beauty_title": "пер. ",
   "title": "Пхия",
@@ -83,6 +86,7 @@ json
     {"data": "<картинка2>", "title": "Подъём"}
   ]
 }
+```
 
 
 **Примеры вызова REST API с хостинга (Yandex Cloud)**
@@ -99,6 +103,7 @@ POST /submit_data
 
 Пример запроса:
 bash
+```
 curl -X POST "http://158.160.1.109:8000/submit_data/" \
   -H "Content-Type: application/json" \
   -d '{
@@ -130,32 +135,40 @@ curl -X POST "http://158.160.1.109:8000/submit_data/" \
       {"data": "<base64-строка>", "title": "Подъём"}
     ]
   }'
+```
 
 Пример успешного ответа:
 json
+```
 {
   "status": 200,
   "message": None,
   "id": 42
 }
+```
 
 Пример ответа при ошибке SQLAlchemy:
 json
+```
 {
   "status": 500,
   "message": f"Ошибка подключения к базе данных: {log ошибки}",
   "id": None
 }
+```
 
 2. Получение информации о перевале по ID:
 GET /submit_data/{id}
 
 Пример запроса:
 bash
+```
 curl "http://158.160.1.109:8000/submit_data/42/"
+```
 
 Пример успешного ответа:
 json
+```
 {
   "id": 42,
   "beauty_title": "пер. ",
@@ -187,23 +200,29 @@ json
     {"title": "Подъём", "data": "<base64-строка>"}
   ]
 }
+```
 
 Пример ответа, если перевал не найден:
 json
+```
 {
   "status": 404,
   "message": f"Перевал с id 999 в базе отсутствует."
 }
+```
 
 3. Получение всех перевалов пользователя по email:
 GET /submit_data/?user__email=<email>
 
 Пример запроса:
 bash
+```
 curl "http://158.160.1.109:8000/submit_data/?user_email=qwerty@mail.ru"
+```
 
 Пример успешного ответа:
 json
+```
 [
   {
     "id": 42,
@@ -247,19 +266,23 @@ json
     "images": []
   }
 ]
+```
 
 Пример ответа, если пользователь не найден:
 json
+```
 {
   "status": 404,
   "message": "Пользователь с таким email не найден."
 }
+```
 
 4. Редактирование перевала:
 PATCH /submit_data/{id}/
 
 Пример запроса:
 bash
+```
 curl -X PATCH "http://158.160.1.109:8000/submit_data/{id}/42/" \
   -H "Content-Type: application/json" \
   -d '{
@@ -269,27 +292,34 @@ curl -X PATCH "http://158.160.1.109:8000/submit_data/{id}/42/" \
       "autumn": "1Б"
     }
   }'
+```
 
 Пример успешного ответа:
 json
+```
 {
   "state": 1,
   "message": None
 }
+```
 
 Пример ответа, если редактирование запрещено:
 json
+```
 {
   "state": 0,
   "message": "Редактирование невозможно. Текущий статус 'Принят'. Для редактирования должен быть статус 'Ожидает модерации'."
 }
+```
 
 Пример ответа, если перевал не найден:
 json
+```
 {
   "state": 404,
   "message": "Перевал не найден."
 }
+```
 
 **Установка и запуск**
 
@@ -301,9 +331,9 @@ cd Skillfactory_Virtual_Traineeship
 2. Создайте и активируйте виртуальное окружение:
 bash
 python -m venv .venv
-# Windows:
+Windows:
 .\.venv\Scripts\activate
-# Linux/macOS:
+Linux/macOS:
 source .venv/bin/activate
 
 3. Установите зависимости:
