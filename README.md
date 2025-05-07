@@ -68,9 +68,8 @@ Skillfactory_Virtual_Traineeship/
 
 
 **Пример входных данных для метода создания перевала**
-
-```
 json
+```
 {
   "beauty_title": "пер. ",
   "title": "Пхия",
@@ -120,8 +119,8 @@ POST /submit_data
 ```
 
 Пример запроса:
-```
 bash
+```
 curl -X POST "http://158.160.1.109:8000/submit_data/" \
   -H "Content-Type: application/json" \
   -d '{
@@ -369,6 +368,7 @@ bash
 pip install -r requirements.txt
 
 4. Настройте переменные окружения в файле .env. Пример содержимого:
+
 FSTR_DB_HOST=localhost
 
 FSTR_DB_PORT=5432
