@@ -63,6 +63,7 @@ Skillfactory_Virtual_Traineeship/
 ├── main.py
 ├── requirements.txt
 ├── .env
+├── .gitignore
 └── README.md
 ```
 
